@@ -46,8 +46,52 @@ export const action: ActionFunction = async ({ request }) => {
   const method = request.method;
   let response;
 
+  const createProduct = async () => {
+    const response = await admin.rest.post({
+      path: "products",
+      data: body,
+      type: DataType.JSON,
+    });
+
+    if (response.ok) {
+      return response;
+    }
+  };
+
+  const updatePrice = async (productId: any) => {
+    const response = new admin.rest.resources.Variant({ session });
+    response.id = productId;
+    response.price = productBody.price.toString();
+    response.metafields = [
+      {
+        key: "new",
+        value: "Default Title",
+        type: "single_line_text_field",
+        namespace: "global",
+      },
+    ];
+    const res = await response.save({
+      update: true,
+    });
+    return res;
+  };
+
+  const addProduct = async () => {
+    try {
+      const productResponse: any = await createProduct();
+      const { product } = await productResponse.json();
+      await updatePrice(product.variants[0]["id"]);
+      return product;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   try {
     switch (method) {
+      case "POST":
+        return addProduct();
+
       case "DELETE":
         return await admin.rest.delete({ path: `products/${product_id}` });
 
@@ -59,12 +103,7 @@ export const action: ActionFunction = async ({ request }) => {
           },
         });
 
-      case "POST":
-        return await admin.rest.post({
-          path: "products",
-          data: body,
-          type: DataType.JSON,
-        });
+      case "PATCH":
 
       default:
         return (response = "Request wrong method");
@@ -100,8 +139,6 @@ const Products = () => {
   const products = useLoaderData<typeof loader>();
   const submit = useSubmit();
   const actionData = useActionData();
-
-  // handler-functions
 
   // delete product
   const deleteProduct = async (product_id: number) => {
@@ -168,32 +205,72 @@ const Products = () => {
                             display: "grid",
                             gridTemplateColumns: "1fr 1fr",
                             placeItems: "center",
-                            fontWeight: '400',
-                            fontSize: '0.9rem'
+                            fontWeight: "400",
+                            fontSize: "0.9rem",
                           }}
                         >
                           <div>
                             <label htmlFor="Product Title">Product Title</label>
                             <br />
-                            <input style={{padding: '0.5rem', borderRadius: '2px', border: "0.5px solid gray", outline: "none"}} type="text" name="title" />
+                            <input
+                              required
+                              style={{
+                                padding: "0.5rem",
+                                borderRadius: "2px",
+                                border: "0.5px solid gray",
+                                outline: "none",
+                              }}
+                              type="text"
+                              name="title"
+                            />
                           </div>
 
                           <div>
                             <label htmlFor="Product Price">Price</label>
                             <br />
-                            <input style={{padding: '0.5rem', borderRadius: '2px', border: "0.5px solid gray", outline: "none"}} type="number" name="price" />
+                            <input
+                              required
+                              style={{
+                                padding: "0.5rem",
+                                borderRadius: "2px",
+                                border: "0.5px solid gray",
+                                outline: "none",
+                              }}
+                              type="number"
+                              name="price"
+                            />
                           </div>
 
                           <div>
                             <label htmlFor="Product Vendor">Vendor</label>
                             <br />
-                            <input  style={{padding: '0.5rem', borderRadius: '2px', border: "0.5px solid gray", outline: "none"}}type="text" name="vendor" />
+                            <input
+                              required
+                              style={{
+                                padding: "0.5rem",
+                                borderRadius: "2px",
+                                border: "0.5px solid gray",
+                                outline: "none",
+                              }}
+                              type="text"
+                              name="vendor"
+                            />
                           </div>
 
-                          <div style={{alignItems: 'center'}}>
+                          <div style={{ alignItems: "center" }}>
                             <label htmlFor="Product Image">Image</label>
                             <br />
-                            <input style={{padding: '0.5rem', borderRadius: '2px', maxWidth: '150px', border: "0.5px solid gray", outline: "none"}} type="file" name="image" />
+                            <input
+                              style={{
+                                padding: "0.5rem",
+                                borderRadius: "2px",
+                                maxWidth: "150px",
+                                border: "0.5px solid gray",
+                                outline: "none",
+                              }}
+                              type="file"
+                              name="image"
+                            />
                           </div>
                         </div>
                         <br />
