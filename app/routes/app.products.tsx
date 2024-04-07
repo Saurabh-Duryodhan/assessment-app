@@ -38,7 +38,6 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const { product_id } = await Object.fromEntries(formData);
   const productBody = await Object.fromEntries(formData);
-
   const body = {
     product: productBody,
   };
@@ -76,11 +75,36 @@ export const action: ActionFunction = async ({ request }) => {
     return res;
   };
 
+  const updateImage = async (productId: number) => {
+    try {
+      const image = new admin.rest.resources.Image({ session: session });
+      image.product_id = productId;
+      image.position = 1;
+      image.height = 40;
+      image.width = 40;
+      image.alt = productBody.alt;
+      image.metafields = [
+        {
+          key: "new",
+          value: "newvalue",
+          type: "single_line_text_field",
+          namespace: "global",
+        },
+      ];
+      image.attachment = productBody.image;
+      image.filename = productBody.title;
+      await image.save({ update: true });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const addProduct = async () => {
     try {
       const productResponse: any = await createProduct();
       const { product } = await productResponse.json();
       await updatePrice(product.variants[0]["id"]);
+      await updateImage(product["id"]);
       return product;
     } catch (error) {
       console.log(error);
@@ -120,6 +144,7 @@ const Products = () => {
   const [toastMessage, setToastMessage] = useState("");
   const toggleActive = useCallback(() => setActive((active) => !active), []);
   const [activeModal, setActiveModal] = useState(false);
+  const [image, setImage] = useState();
 
   const handleChange = useCallback(
     () => setActiveModal(!activeModal),
@@ -139,7 +164,7 @@ const Products = () => {
   const products = useLoaderData<typeof loader>();
   const submit = useSubmit();
   const actionData = useActionData();
-
+  
   // delete product
   const deleteProduct = async (product_id: number) => {
     submit({ product_id }, { method: "DELETE" });
@@ -156,6 +181,7 @@ const Products = () => {
 
   const createProduct = (e: any) => {
     const newFormData = new FormData(e.target);
+    newFormData.append("image", `${image}`);
     submit(newFormData, { method: "POST" });
     setToastMessage("Product Created Successfully!");
     toggleActive();
@@ -171,6 +197,13 @@ const Products = () => {
     />
   );
 
+  function handleImageChange(e: any) {
+    const data: any = new FileReader();
+    data.addEventListener("load", () => {
+      setImage(data?.result.split(",")[1]);
+    });
+    data.readAsDataURL(e.target.files[0]);
+  }
   useEffect(() => {
     return () => {};
   }, [products]);
@@ -241,7 +274,7 @@ const Products = () => {
                             />
                           </div>
 
-                          <div>
+                          <div style={{marginTop: '1em'}}>
                             <label htmlFor="Product Vendor">Vendor</label>
                             <br />
                             <input
@@ -257,9 +290,8 @@ const Products = () => {
                             />
                           </div>
 
-                          <div style={{ alignItems: "center" }}>
-                            <label htmlFor="Product Image">Image</label>
-                            <br />
+                          <div style={{ alignItems: "center", marginTop: '2.5em', }}>
+                            <label style={{marginRight: '1rem'}} htmlFor="Product Image">Image</label>
                             <input
                               style={{
                                 padding: "0.5rem",
@@ -269,13 +301,35 @@ const Products = () => {
                                 outline: "none",
                               }}
                               type="file"
+                              onChange={handleImageChange}
                               name="image"
+                              accept="image/png, image/jpeg"
                             />
                           </div>
                         </div>
-                        <br />
 
-                        <Button submit>Add Product</Button>
+                        <div
+                          style={{ marginLeft: "1.8rem", marginTop: "1rem" }}
+                        >
+                          <label htmlFor="Product Description">Description</label>
+                          <br />
+                          <textarea
+                            required
+                            style={{
+                              width: "95%",
+                              padding: "0.5rem",
+                              borderRadius: "2px",
+                              border: "0.5px solid gray",
+                              outline: "none",
+                            }}
+                            name="alt"
+                          />
+                        </div>
+
+                        <br />
+                        <Button submit variant="primary">
+                          Add Product
+                        </Button>
                       </Form>
                     </TextContainer>
                   </Modal.Section>
