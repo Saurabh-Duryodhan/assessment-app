@@ -3,7 +3,7 @@
 client_id = "fb09e66b90e71f2944c9aa1f213530ec"
 name = "assessment-app"
 handle = "assessment-app"
-application_url = "https://allow-wrapped-said-ppc.trycloudflare.com"
+application_url = "https://however-depression-hispanic-accommodate.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://allow-wrapped-said-ppc.trycloudflare.com/auth/callback",
-  "https://allow-wrapped-said-ppc.trycloudflare.com/auth/shopify/callback",
-  "https://allow-wrapped-said-ppc.trycloudflare.com/api/auth/callback"
+  "https://however-depression-hispanic-accommodate.trycloudflare.com/auth/callback",
+  "https://however-depression-hispanic-accommodate.trycloudflare.com/auth/shopify/callback",
+  "https://however-depression-hispanic-accommodate.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
